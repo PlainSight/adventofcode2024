@@ -16,6 +16,11 @@ left.forEach((l) => {
         }
     });
 
+    // altenatively
+    /*
+    var occurs = right.filter(r => r == l).length;
+    */
+
     score += occurs * l;
 })
 
