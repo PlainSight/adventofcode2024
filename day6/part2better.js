@@ -52,18 +52,20 @@ input.forEach((r, y) => {
 
 var visited = new Array(4*input.length*input[0].length);
 
-function runSim(ox, oy, first, iter) {
+function runSim(ox, oy, first, iter, sx, sy, sd) {
     if (obs[ko(ox, oy)] || (ox == startx && oy == starty)) {
         return false;
     }
 
-    var gx = startx;
-    var gy = starty;
-    var d = 0;
+    var gx = sx;
+    var gy = sy;
+    var d = sd;
+
+    var path = [];
 
     while(gx <= maxx && gx >= minx && gy <= maxy && gy >= miny) {
         if (first) {
-            visited[kv(gx, gy, 0)] = iter;
+            path.push(kv(gx, gy, d));
         } else {
             if (visited[kv(gx, gy, d)] == iter) {
                 return true;
@@ -85,20 +87,30 @@ function runSim(ox, oy, first, iter) {
         gy = ny;
     }
 
-    return first ? visited : false;
+    return first ? path : false;
 }
 
 
-var init = runSim(-5, -5, true, 1);
+var init = runSim(-5, -5, true, 1, startx, starty, 0);
 
 var count = 0;
 
-Object.keys(init).forEach((k, ki) => {
-    var [ox, oy, d] = rk(k);
-    
-    if (runSim(ox, oy, false, ki+2)) {
-        count++;
+var seen = new Array(input.length*input[0].length);
+
+init.forEach((k, ki) => {
+    var [ox, oy, _] = rk(k);
+    var [sx, sy, sd] = [startx, starty, 0];
+    if (ki > 0) {
+        [sx, sy, sd] = rk(init[ki-1]);
     }
+
+    // we only collide with it the first time we cross paths with it regardless of direction.
+    if (!seen[ko(ox, oy)]) {
+        if (runSim(ox, oy, false, ki+2, sx, sy, sd)) {
+            count++;
+        }
+    }
+    seen[ko(ox, oy)] = true;
 })
 
 console.log(count);
