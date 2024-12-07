@@ -53,10 +53,6 @@ input.forEach((r, y) => {
 var visited = new Array(4*input.length*input[0].length);
 
 function runSim(ox, oy, first, iter, sx, sy, sd) {
-    if (obs[ko(ox, oy)] || (ox == startx && oy == starty)) {
-        return false;
-    }
-
     var gx = sx;
     var gy = sy;
     var d = sd;
@@ -66,21 +62,26 @@ function runSim(ox, oy, first, iter, sx, sy, sd) {
     while(gx <= maxx && gx >= minx && gy <= maxy && gy >= miny) {
         if (first) {
             path.push(kv(gx, gy, d));
-        } else {
-            if (visited[kv(gx, gy, d)] == iter) {
-                return true;
-            }
-            visited[kv(gx, gy, d)] = iter;
         }
 
         var nx = gx + ds[d][0];
         var ny = gy + ds[d][1];
+
+        var turned = false;
 
         while (obs[ko(nx, ny)] || (nx == ox && ny == oy)) {
             d++;
             d = d % 4;
             nx = gx + ds[d][0];
             ny = gy + ds[d][1];
+            turned = true;
+        }
+
+        if (turned) {
+            if (visited[kv(gx, gy, d)] == iter) {
+                return true;
+            }
+            visited[kv(gx, gy, d)] = iter;
         }
 
         gx = nx;
@@ -90,27 +91,26 @@ function runSim(ox, oy, first, iter, sx, sy, sd) {
     return first ? path : false;
 }
 
-
-var init = runSim(-5, -5, true, 1, startx, starty, 0);
+var init = runSim(-1, -1, true, 1, startx, starty, 0);
 
 var count = 0;
 
 var seen = new Array(input.length*input[0].length);
+seen[ko(startx, starty)] = true;
 
-init.forEach((k, ki) => {
+// skip the first step as that is the start pos
+for(var ki = 1; ki < init.length; ki++) {
+    const k = init[ki];
     var [ox, oy, _] = rk(k);
-    var [sx, sy, sd] = [startx, starty, 0];
-    if (ki > 0) {
-        [sx, sy, sd] = rk(init[ki-1]);
-    }
+    [sx, sy, sd] = rk(init[ki-1]);
 
     // we only collide with it the first time we cross paths with it regardless of direction.
     if (!seen[ko(ox, oy)]) {
-        if (runSim(ox, oy, false, ki+2, sx, sy, sd)) {
+        if (runSim(ox, oy, false, ki+1, sx, sy, sd)) {
             count++;
         }
     }
     seen[ko(ox, oy)] = true;
-})
+}
 
 console.log(count);
