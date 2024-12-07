@@ -8,11 +8,13 @@ function check(ans, acc, remaining) {
     if (remaining.length == 0) {
         return ans == acc;
     }
+    if (acc > ans) {
+        return false
+    }
     else {
-        var mul = check(ans, acc * remaining[0], remaining.slice(1));
-        var add = check(ans, acc + remaining[0], remaining.slice(1));
-        var combo = check(ans, parseInt(acc + '' + remaining[0]), remaining.slice(1));
-        return mul || add || combo;
+        return check(ans, acc * remaining[0], remaining.slice(1)) ? true :
+            check(ans, acc + remaining[0], remaining.slice(1)) ? true :
+            check(ans, parseInt(acc + '' + remaining[0]), remaining.slice(1));
     }
 }
 
