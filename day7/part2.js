@@ -2,28 +2,48 @@ var fs = require('fs');
 
 var input = fs.readFileSync('./input.txt', 'utf8').split('\r\n').map(n => n.split(/[: ]+/g).map(x => parseInt(x)));
 
-var possible = 0;
+var currentNums = [];
+var currentTarget = 0;
+var currentLen = 0;
 
-function check(ans, acc, remaining) {
-    if (remaining.length == 0) {
-        return ans == acc;
+var currentTargetLength = 0;
+var currentOperandLengths = [];
+
+var funcCalls = 0;
+
+function check(acc, index, remainingOperandLengths) {
+    funcCalls++;
+
+    if (index == currentLen) {
+        return currentTarget == acc;
     }
-    if (acc > ans) {
-        return false
+
+    // early returns
+    if (currentTargetLength > (acc+'').length + remainingOperandLengths) {
+        return false;
     }
+    if (acc > currentTarget) {
+        return false;
+    }
+    
     else {
-        return check(ans, acc * remaining[0], remaining.slice(1)) ? true :
-            check(ans, acc + remaining[0], remaining.slice(1)) ? true :
-            check(ans, parseInt(acc + '' + remaining[0]), remaining.slice(1));
+        return check(acc * currentNums[index], index+1, remainingOperandLengths - currentOperandLengths[index]) ? true :
+            check(acc + currentNums[index], index+1, remainingOperandLengths - currentOperandLengths[index]) ? true :
+            check(parseInt(acc + '' + currentNums[index]), index+1, remainingOperandLengths - currentOperandLengths[index]);
     }
 }
 
+var possible = 0;
+
 input.forEach(i => {
-    var a = i[0];
-    var first = i[1];
-    var others = i.slice(2);
-    if (check(a, first, others)) {
-        possible += a;
+    currentTarget = i[0];
+    currentTargetLength = (''+currentTarget).length;
+    currentNums = i;
+    currentOperandLengths = currentNums.map(n => (''+n).length);
+
+    currentLen = i.length;
+    if (check(currentNums[1], 2, currentOperandLengths.slice(2).reduce((a, c) => a+c))) {
+        possible += currentTarget;
     }
 })
 
