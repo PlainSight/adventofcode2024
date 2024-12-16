@@ -34,16 +34,16 @@ var ds = [
     [0, -1]
 ];
 
-
 var lowestScore = Number.MAX_SAFE_INTEGER;
-
-var counter = 0;
 
 var pathsForTheBestScore = [];
 
 while(stack.length) {
-    counter++;
     var top = stack.pop();
+
+    if (top.v > lowestScore) {
+        continue;
+    }
 
     if (input[top.y][top.x] == 'E') {
         if (top.v == lowestScore) {
