@@ -24,7 +24,8 @@ var stack = [{
     v: 0,
     x: sx,
     y: sy,
-    d: 0
+    d: 0,
+    parents: []
 }];
 
 var ds = [
@@ -66,39 +67,46 @@ while(stack.length) {
 
         if (input[ny][nx] != '#') {
             var key = k(nx,ny,di);
-            if (nv <= (seen[key] ?? Number.MAX_SAFE_INTEGER)) {
-                seen[key] = nv;
-                stack.push({
+
+            const existingNode = seen[key];
+            if (existingNode) {
+                if (nv < existingNode.v) {
+                    existingNode.v = nv;
+                    existingNode.parents = [top];
+                    stack.push(existingNode);
+                    //we must reinsert as we now have a lower v
+                } else {
+                    if (nv == existingNode.v) {
+                        existingNode.parents.push(top);
+                    }
+                }
+            } else {
+                const newNode = {
                     v: nv,
                     x: nx,
                     y: ny,
                     d: di,
-                    parent: top
-                });
+                    parents: [top]
+                };
+                seen[key] = newNode;
+                stack.push(newNode);
             }
         }
     })
 }
 
-const extractTiles = (n) => {
-    let list = [];
-
-    while(n.parent) {
-        list.push(n.x+','+n.y);
-        n = n.parent;
-    }
-    list.push(n.x+','+n.y);
-
-    return list;
-}
-
 var tilesInAllBestPaths = {};
 
-pathsForTheBestScore.forEach(p => {
-    var tiles = extractTiles(p);
-    tiles.forEach(n => {
-        tilesInAllBestPaths[n] = true;
+const explorePaths = (n) => {
+    tilesInAllBestPaths[n.x+','+n.y] = true;
+
+    n.parents.forEach(p => {
+        explorePaths(p);
     })
+}
+
+pathsForTheBestScore.forEach(p => {
+    explorePaths(p);
 })
 
-console.log(Object.values(tilesInAllBestPaths).length);
+console.log(Object.keys(tilesInAllBestPaths).length);
