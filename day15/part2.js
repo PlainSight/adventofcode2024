@@ -56,7 +56,6 @@ const canMove = (x, y, ox, oy) => {
         dy /= Math.abs(y - oy);
     }
     if (walls[k(x, y)]) {
-        //console.log('hit wall');
         return false;
     }
     if (boxes[k(x, y)]) {
@@ -79,9 +78,6 @@ const canMove = (x, y, ox, oy) => {
 }
 
 const push = (x, y, ox, oy, putboxid = 0) => {
-    if (!canMove(x, y, ox, oy)) {
-        return false;
-    }
     var dx = x - ox;
     if (dx != 0) {
         dx /= Math.abs(x - ox);
@@ -90,7 +86,6 @@ const push = (x, y, ox, oy, putboxid = 0) => {
     if (dy != 0) {
         dy /= Math.abs(y - oy);
     }
-
 
     if (boxes[k(x, y)]) {
         var boxHit = boxes[k(x, y)];
@@ -107,11 +102,6 @@ const push = (x, y, ox, oy, putboxid = 0) => {
     }
     if (putboxid) {
         boxes[k(x, y)] = putboxid;
-        // if (joinedBoxId < putboxid) {
-        //     boxes[k(x-1, y)] = joinedBoxId;
-        // } else {
-        //     boxes[k(x+1, y)] = joinedBoxId;
-        // }
     }
     return true;
 };
@@ -159,11 +149,14 @@ instructions.forEach(i => {
             newy = posy+1;
             break;
     }
-    var result = push(newx, newy, posx, posy);
-    if (result) {
-        posx = newx;
-        posy = newy;
+    if (canMove(newx, newy, posx, posy)) {
+        var result = push(newx, newy, posx, posy);
+        if (result) {
+            posx = newx;
+            posy = newy;
+        }
     }
+    
 });
 
 var score = (k) => {
