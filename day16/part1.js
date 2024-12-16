@@ -33,10 +33,7 @@ var ds = [
 
 var lowestScore = Number.MAX_SAFE_INTEGER;
 
-var counter = 0;
-
 while(stack.length) {
-    counter++;
     var top = stack.pop();
 
     if (input[top.y][top.x] == 'E') {

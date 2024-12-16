@@ -57,25 +57,24 @@ while(stack.length) {
         continue;
     }
 
-    ds.forEach((d, di) => {
-        var dirDiff = Math.abs(di - top.d);
-        if (dirDiff != 2) {
-            var nx = top.x + d[0];
-            var ny = top.y + d[1];
-            var nv = dirDiff == 0 ? (top.v+1) : (top.v+1001);
+    [3, 1, 0].forEach((dirDiff) => {
+        var di = (top.d+dirDiff)%4;
+        var d = ds[di];
+        var nx = top.x + d[0];
+        var ny = top.y + d[1];
+        var nv = dirDiff == 0 ? (top.v+1) : (top.v+1001);
 
-            if (input[ny][nx] != '#') {
-                var key = k(nx,ny,di);
-                if (nv <= (seen[key] ?? Number.MAX_SAFE_INTEGER)) {
-                    seen[key] = nv;
-                    stack.push({
-                        v: nv,
-                        x: nx,
-                        y: ny,
-                        d: di,
-                        parent: top
-                    });
-                }
+        if (input[ny][nx] != '#') {
+            var key = k(nx,ny,di);
+            if (nv <= (seen[key] ?? Number.MAX_SAFE_INTEGER)) {
+                seen[key] = nv;
+                stack.push({
+                    v: nv,
+                    x: nx,
+                    y: ny,
+                    d: di,
+                    parent: top
+                });
             }
         }
     })
@@ -88,6 +87,8 @@ const extractTiles = (n) => {
         list.push(n.x+','+n.y);
         n = n.parent;
     }
+    list.push(n.x+','+n.y);
+
     return list;
 }
 
@@ -100,4 +101,4 @@ pathsForTheBestScore.forEach(p => {
     })
 })
 
-console.log(Object.values(tilesInAllBestPaths).length + 1);
+console.log(Object.values(tilesInAllBestPaths).length);
