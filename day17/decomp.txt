@@ -1,0 +1,18 @@
+2 4 B = A % 8
+1 2 B = B XOR 2 (10)
+7 5 C = floor A / 2^B 
+1 7 B = B XOR 7 (111)
+4 4 B = B XOR C
+0 3 A = floor A / 8
+5 5 out B
+3 0 loop if A != 0
+
+while (A != 0) {
+    B = A % 8
+    B = B XOR 2
+    C = floor A / 2^B
+    B = B XOR 7
+    B = B XOR C
+    A = floor A / 8
+    Out B
+}
