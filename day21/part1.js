@@ -38,7 +38,7 @@ var ds = [
     [-1, 0]
 ];
 
-const resolvePathToMoves = (end) => {
+const resolvePathToMoves = (end, startChar, endChar, map) => {
     const path = ['A'];
     let current = end;
     while(current.parent) {
@@ -61,12 +61,74 @@ const resolvePathToMoves = (end) => {
         }
         current = current.parent;
     }
+
+    // everything that follows is evil
+    const sortDistFromA = {
+        'A': 4,
+        'v': 2,
+        '^': 1,
+        '<': 0,
+        '>': 2
+    }
+
+    const sortOrderVert = {
+        'A': 4,
+        'v': 1,
+        '^': 1,
+        '<': 2,
+        '>': 2,
+    }
+    const sortOrderHori = {
+        'A': 4,
+        'v': 2,
+        '^': 2,
+        '<': 1,
+        '>': 1,
+    }
+    let sortOrder = sortDistFromA;
+
+    if (map.length > 2) {
+        const illegalMoves = {
+            '7': 3,
+            '4': 2,
+            '1': 1,
+            '0': 1,
+            'A': 2
+        }
+    
+        // left side of num pad 
+        if (['7', '4', '1'].includes(startChar) && path.filter(p => p == 'v').length >= illegalMoves[startChar]) {
+            sortOrder = sortOrderHori;
+        }
+    
+        if (['0', 'A'].includes(startChar) && path.filter(p => p == '<').length >= illegalMoves[startChar]) {
+            sortOrder = sortOrderVert;
+        }
+    } else {
+        const illegalMoves = {
+            '<': 1,
+            '^': 1,
+            'A': 2
+        }
+    
+        // left side of d pad 
+        if (['<'].includes(startChar) && path.filter(p => p == '^').length >= illegalMoves[startChar]) {
+            sortOrder = sortOrderHori;
+        }
+    
+        if (['^', 'A'].includes(startChar) && path.filter(p => p == '<').length >= illegalMoves[startChar]) {
+            sortOrder = sortOrderVert;
+        }
+    }
+
+    path.sort((a, b) => sortOrder[a] - sortOrder[b]);
+
     return path;
 }
 
 const findPath = (startChar, endChar, map) => {
     if (startChar == endChar) {
-        return [['A']];
+        return ['A'];
     }
     var [sx, sy] = find(startChar, map);
     var [ex, ey] = find(endChar, map);
@@ -81,9 +143,9 @@ const findPath = (startChar, endChar, map) => {
         d: 0
     }];
 
-    const possiblePaths = [];
+    let res = null;
 
-    while(stack.length) {
+    while(stack.length && res == null) {
         const bottom = stack.shift();
 
         ds.forEach(d => {
@@ -91,18 +153,12 @@ const findPath = (startChar, endChar, map) => {
             const ny = bottom.y + d[1];
 
             if (nx == ex && ny == ey) {
-                return [resolvePathToMoves({
+                res = resolvePathToMoves({
                     x: nx,
                     y: ny,
                     d: bottom.d+1,
                     parent: bottom
-                })];
-                // possiblePaths.push({
-                //     x: nx,
-                //     y: ny,
-                //     d: bottom.d+1,
-                //     parent: bottom
-                // });
+                }, startChar, endChar, map);
             } else {
                 if (!seen[k(nx, ny)] && map[ny] && map[ny][nx] != null) {
                     seen[k(nx, ny)] = true;
@@ -117,68 +173,38 @@ const findPath = (startChar, endChar, map) => {
         });
     }
 
-    return possiblePaths.map(pp => resolvePathToMoves(pp));
+    return res;
 };
 
-const possiblePaths = (locations, map) => {
-    if (locations.length < 2) {
-        return [];
+const possiblePath = (locations, map) => {
+    let finalPath = [];
+    for(var i = 0; i < locations.length-1; i++) {
+        const from = locations[i];
+        const to = locations[i+1];
+
+        const path = findPath(from, to, map);
+        finalPath = finalPath.concat(path);
     }
-    const localPaths = findPath(locations[0], locations[1], map);
-    return localPaths.map(p => {
-        return {
-            val: p,
-            children: possiblePaths(locations.slice(1), map)
-        }
-    })
+    return finalPath;
 }
 
-const flattenPaths = (pp) => {
-    const allPaths = [];
-    pp.forEach(p => {
-        if (p.children.length > 0) {
-            const flattenedChildren = flattenPaths(p.children);
-            flattenedChildren.forEach(fc => {
-                allPaths.push([...p.val, ...fc])
-            })
-        } else {
-            allPaths.push([...p.val]);
-        }
-    });
-    return allPaths;
-}
-
-const findAllCompositePaths = (locationsArray, map) => {
-    const allPaths = [];
-    locationsArray.forEach(la => {
-        const pp = possiblePaths(['A', ...la], map);
-        const fp = flattenPaths(pp);
-        allPaths.push(...fp);
-    })
-    const ap2 = Object.values(allPaths.map(f => f.join('')).reduce((a, c) => { a[c] = c; return a }, {})).map(v => v.split(''));
-    return ap2;
+const findCompositePath = (locations, map) => {
+    return possiblePath(['A', ...locations], map);
 }
 
 var totalComplexity = 0;
 
 passwords.forEach((p, pi) => {
-    if (pi != 0) {
-        return;
-    }
+    // if (pi != 4) {
+    //     return;
+    // }
     const numeric = Number(/(\d+)/.exec(p.join(''))[1]);
 
-    let phase1 = findAllCompositePaths([p], numberPadMap);
-    console.log('p1', phase1);
-    
-    //let phase2 = findAllCompositePaths(phase1, directionPadMap);
-    //console.log('p2', phase2);
-    //let phase3 = findCompositePath(['A', ...phase2], directionPadMap);
+    let phase1 = findCompositePath(p, numberPadMap);
+    let phase2 = findCompositePath(phase1, directionPadMap);
+    let phase3 = findCompositePath(phase2, directionPadMap);
 
-    if (pi == 100) {
-        console.log(phase1.join(''));
-        console.log(phase2.join(''));
-        console.log(phase3.join(''), phase3.filter(x => x == 'A').length);
-        const test = '<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A';
-        console.log(test, test.split('').filter(x => x == 'A').length);
-    }
+    totalComplexity += phase3.length * numeric;
 });
+
+console.log(totalComplexity);
