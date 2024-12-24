@@ -205,7 +205,7 @@ passwords.forEach((p, pi) => {
         currentPhase = findCompositePath(lastPhase, directionPadMap);
 
         // short cuts
-        if (i > 1) {
+        if (i > 2) {
             const lastBits = lastPhase.join('').split('A').slice(0, -1).map(lb => lb+'A');
             const bits = currentPhase.join('').split('A');
 
@@ -220,10 +220,8 @@ passwords.forEach((p, pi) => {
                 for (var j = biStart; j < bitsIndex; j++) {
                     result.push(bits[j]);
                 }
-                const rs = result.join('A') + 'A';
-                const rs2 = result.map(r => r + 'A');
-                cache[key] = cache[key] || {};
-                cache[key][rs] = rs2;
+                const rs = result.map(r => r + 'A');
+                cache[key] = rs;
             }
         }
     }
@@ -242,7 +240,7 @@ passwords.forEach((p, pi) => {
     for(var i = 0; i < 21; i++) {
         let nextBuckets = {};
         Object.entries(buckets).forEach(e => {
-            var newEntries = Object.values(cache[e[0]])[0];
+            var newEntries = cache[e[0]];
             newEntries.forEach(ne => {
                 nextBuckets[ne] = nextBuckets[ne] ?? 0n;
                 nextBuckets[ne] += e[1];   
